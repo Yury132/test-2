@@ -103,7 +103,6 @@ func uploads(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Размер Изображения в байтах: = ", info.Size())
 
-	defer file.Close()
 	// // Получаем размеры картинки и формат через DecodeConfig
 	// config, format, err := image.DecodeConfig(file)
 	// if err != nil {
@@ -121,6 +120,14 @@ func uploads(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("failed to decode...")
 		log.Fatal(err)
 	}
+
+	// Закрываем файл
+	err = file.Close()
+	if err != nil {
+		fmt.Println("failed to close file...")
+		log.Fatal(err)
+	}
+
 	// Массив байтов
 	//fmt.Println("Decode:", imageData)
 	fmt.Println("Тип Изображения: = ", imageType)
