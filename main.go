@@ -15,16 +15,6 @@ import (
 	"github.com/nfnt/resize"
 )
 
-// Для функции calculateRatioFit
-// const DEFAULT_MAX_WIDTH float64 = 320
-// const DEFAULT_MAX_HEIGHT float64 = 240
-
-// Рассчитываем размер изображения после масштабирования
-// func calculateRatioFit(srcWidth, srcHeight int) (int, int) {
-// 	ratio := math.Min(DEFAULT_MAX_WIDTH/float64(srcWidth), DEFAULT_MAX_HEIGHT/float64(srcHeight))
-// 	return int(math.Ceil(float64(srcWidth) * ratio)), int(math.Ceil(float64(srcHeight) * ratio))
-// }
-
 func main() {
 	http.HandleFunc("/uploads", uploads)
 	http.ListenAndServe(":8080", nil)
@@ -136,12 +126,6 @@ func uploads(w http.ResponseWriter, r *http.Request) {
 	heightDecode := b.Max.Y
 	fmt.Println("Ширина Изображения: = ", widthDecode)
 	fmt.Println("Высота Изображения: = ", heightDecode)
-
-	// Масштабируем изображение - Расчет
-	//width, height := calculateRatioFit(config.Width, config.Height)
-
-	//fmt.Println("width = ", config.Width, " height = ", config.Height)
-	//fmt.Println("width = ", width, "height = ", height)
 
 	// Создаем миниатюру
 	newImage := resize.Thumbnail(100, 100, imageData, resize.Lanczos3)
