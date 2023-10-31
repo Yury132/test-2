@@ -2,6 +2,7 @@ package media_service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -20,12 +21,18 @@ type MediaService interface {
 	GetTaskForProcessing() (*models.InfoForThumbnail, error)
 }
 
+type Storage interface {
+	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+}
+
 type ObjectStorage interface {
 	Save(data []byte, name string) error
 }
 
 type mediaService struct {
 	log           zerolog.Logger
+	storage       Storage
 	objectStorage ObjectStorage
 	jsConsumer    jetstream.Consumer
 }
@@ -53,6 +60,7 @@ func (m *mediaService) GetTaskForProcessing() (*models.InfoForThumbnail, error) 
 }
 
 // Через resize
+// После создания миниатюры тут же сохраняем данные в БД
 func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 
 	// Открываем ранее сохраненную картинку
@@ -88,8 +96,17 @@ func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 	// Создаем уникальное имя
 	pName := uuid.New().String()
 
+	// Сохраняем миниатюру в память
 	if err = m.objectStorage.Save(imgBytes, fmt.Sprintf("%s.png", pName)); err != nil {
 		m.log.Error().Err(err).Msg("objectStorage.Save err")
+		return err
+	}
+
+	// Сохраняем данные о миниатюре в БД-----------------------------------------------------------------------------------
+	dataMini := &models.ImageMeta{Name: fmt.Sprintf("%s.png", pName), Type: "png", Width: newImage.Bounds().Max.X, Height: newImage.Bounds().Max.Y}
+
+	if err = m.storage.SaveFileMiniMeta(context.Background(), dataMini); err != nil {
+		m.log.Error().Err(err).Msg("failed to save data about mini to DB")
 		return err
 	}
 
@@ -122,9 +139,10 @@ func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 // 	return nil
 // }
 
-func New(log zerolog.Logger, objectStorage ObjectStorage, jsConsumer jetstream.Consumer) MediaService {
+func New(log zerolog.Logger, storage Storage, objectStorage ObjectStorage, jsConsumer jetstream.Consumer) MediaService {
 	return &mediaService{
 		log:           log,
+		storage:       storage,
 		objectStorage: objectStorage,
 		jsConsumer:    jsConsumer,
 	}

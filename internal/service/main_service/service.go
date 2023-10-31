@@ -12,6 +12,7 @@ import (
 
 type Storage interface {
 	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 }
 
 type ObjectStorage interface {

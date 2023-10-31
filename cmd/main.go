@@ -78,7 +78,7 @@ func main() {
 	strg := postgres.New(conn)
 	objStorage := objectStorage.New(logger)
 	svc := service.New(logger, strg, objStorage, js)
-	mediaSvc := mediaService.New(logger, objStorage, cons)
+	mediaSvc := mediaService.New(logger, strg, objStorage, cons)
 	handler := handlers.New(logger, svc)
 	server := transport.New(":8080").WithHandler(handler)
 
