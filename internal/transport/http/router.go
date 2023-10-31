@@ -1,0 +1,17 @@
+package http
+
+import (
+	"net/http"
+
+	"github.com/Yury132/Golang-Task-2/internal/transport/http/handlers"
+	"github.com/gorilla/mux"
+)
+
+func InitRoutes(h *handlers.Handler) *mux.Router {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/uploads", h.Upload).Methods(http.MethodPost)
+	r.HandleFunc("/health", h.Health).Methods(http.MethodGet)
+
+	return r
+}
