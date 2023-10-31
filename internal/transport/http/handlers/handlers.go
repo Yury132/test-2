@@ -13,6 +13,8 @@ import (
 
 type Service interface {
 	UploadPhoto(ctx context.Context, data []byte, metaInfo *models.ImageMeta, thumbSize int) error
+	// Получаем информацию о картинках
+	GetData(ctx context.Context) ([]models.AllImages, error)
 }
 
 type Handler struct {
@@ -78,6 +80,25 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// Получаем информацию о картинках
+func (h *Handler) GetData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	images, err := h.service.GetData(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Error().Err(err).Msg("failed to get images")
+		return
+	}
+	// Кодируем
+	data, err := json.Marshal(images)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Error().Err(err).Msg("failed to marshal images")
+		return
+	}
+	w.Write(data)
 }
 
 func New(log zerolog.Logger, service Service) *Handler {

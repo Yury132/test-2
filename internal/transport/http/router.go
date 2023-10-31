@@ -12,6 +12,8 @@ func InitRoutes(h *handlers.Handler) *mux.Router {
 
 	r.HandleFunc("/uploads", h.Upload).Methods(http.MethodPost)
 	r.HandleFunc("/health", h.Health).Methods(http.MethodGet)
+	// Получаем информацию о картинках
+	r.HandleFunc("/getData", h.GetData).Methods(http.MethodGet)
 
 	return r
 }

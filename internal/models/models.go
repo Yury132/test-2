@@ -14,6 +14,18 @@ type ImageMeta struct {
 	Width  int
 }
 
+// Отображение информации о загруженных картинках и созданных миниатюрах
+type AllImages struct {
+	ID         uint   `json:"Id"`
+	Name       string `json:"Name"`
+	Type       string `json:"Type"`
+	Width      int    `json:"Width"`
+	Height     int    `json:"Height"`
+	NameMini   string `json:"Name Miniature"`
+	WidthMini  int    `json:"Width Miniature"`
+	HeightMini int    `json:"Height Miniature"`
+}
+
 func CollectImageMeta(data []byte, name string) (*ImageMeta, error) {
 	r := bytes.NewReader(data)
 	//r.Seek(0, 0)

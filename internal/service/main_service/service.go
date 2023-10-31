@@ -13,6 +13,8 @@ import (
 type Storage interface {
 	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	// Получаем информацию о картинках
+	GetData(ctx context.Context) ([]models.AllImages, error)
 }
 
 type ObjectStorage interface {
@@ -21,6 +23,8 @@ type ObjectStorage interface {
 
 type Service interface {
 	UploadPhoto(ctx context.Context, data []byte, metaInfo *models.ImageMeta, thumbSize int) error
+	// Получаем информацию о картинках
+	GetData(ctx context.Context) ([]models.AllImages, error)
 }
 
 type service struct {
@@ -58,6 +62,15 @@ func (s *service) UploadPhoto(ctx context.Context, data []byte, metaInfo *models
 	}
 
 	return nil
+}
+
+// Получаем информацию о картинках
+func (s *service) GetData(ctx context.Context) ([]models.AllImages, error) {
+	images, err := s.storage.GetData(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return images, nil
 }
 
 func New(log zerolog.Logger, storage Storage, objectStorage ObjectStorage, js jetstream.JetStream) Service {

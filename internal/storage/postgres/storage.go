@@ -12,6 +12,8 @@ import (
 type Storage interface {
 	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	// Получаем информацию о картинках
+	GetData(ctx context.Context) ([]models.AllImages, error)
 }
 
 type storage struct {
@@ -46,6 +48,35 @@ func (s *storage) SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMe
 	}
 
 	return nil
+}
+
+// Получаем информацию о картинках
+func (s *storage) GetData(ctx context.Context) ([]models.AllImages, error) {
+	//query := "SELECT id, name, type, height, width FROM public.mini_info"
+
+	query := "SELECT ui.id, ui.name, ui.type, ui.width, ui.height, mi.name, mi.width, mi.height FROM public.mini_info mi INNER JOIN public.uploads_info ui ON mi.id = ui.id"
+
+	rows, err := s.conn.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var images = make([]models.AllImages, 0)
+
+	for rows.Next() {
+		var image models.AllImages
+		if err = rows.Scan(&image.ID, &image.Name, &image.Type, &image.Width, &image.Height, &image.NameMini, &image.WidthMini, &image.HeightMini); err != nil {
+			return nil, err
+		}
+		images = append(images, image)
+	}
+
+	if rows.Err() != nil {
+		return nil, err
+	}
+
+	return images, nil
 }
 
 func New(conn *pgxpool.Pool) Storage {

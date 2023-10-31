@@ -102,7 +102,7 @@ func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 		return err
 	}
 
-	// Сохраняем данные о миниатюре в БД-----------------------------------------------------------------------------------
+	// Сохраняем данные о миниатюре в БД
 	dataMini := &models.ImageMeta{Name: fmt.Sprintf("%s.png", pName), Type: "png", Width: newImage.Bounds().Max.X, Height: newImage.Bounds().Max.Y}
 
 	if err = m.storage.SaveFileMiniMeta(context.Background(), dataMini); err != nil {
