@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/Yury132/Golang-Task-2/internal/models"
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 )
 
@@ -15,6 +16,8 @@ type Service interface {
 	UploadPhoto(ctx context.Context, data []byte, metaInfo *models.ImageMeta, thumbSize int) error
 	// Получаем информацию о картинках
 	GetData(ctx context.Context) ([]models.AllImages, error)
+	// Получаем информацию о картинках по id
+	GetDataId(ctx context.Context, id int) ([]models.AllImages, error)
 }
 
 type Handler struct {
@@ -96,6 +99,33 @@ func (h *Handler) GetData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		h.log.Error().Err(err).Msg("failed to marshal images")
+		return
+	}
+	w.Write(data)
+}
+
+// Получаем информацию о картинках по id
+func (h *Handler) GetDataId(w http.ResponseWriter, r *http.Request) {
+	// Получаем id
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Error().Err(err).Msg("failed to get id from string")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	images, err := h.service.GetDataId(r.Context(), id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Error().Err(err).Msg("failed to get images id")
+		return
+	}
+	// Кодируем
+	data, err := json.Marshal(images)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		h.log.Error().Err(err).Msg("failed to marshal images id")
 		return
 	}
 	w.Write(data)

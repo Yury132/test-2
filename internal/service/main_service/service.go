@@ -15,6 +15,8 @@ type Storage interface {
 	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 	// Получаем информацию о картинках
 	GetData(ctx context.Context) ([]models.AllImages, error)
+	// Получаем информацию о картинках по id
+	GetDataId(ctx context.Context, id int) ([]models.AllImages, error)
 }
 
 type ObjectStorage interface {
@@ -25,6 +27,8 @@ type Service interface {
 	UploadPhoto(ctx context.Context, data []byte, metaInfo *models.ImageMeta, thumbSize int) error
 	// Получаем информацию о картинках
 	GetData(ctx context.Context) ([]models.AllImages, error)
+	// Получаем информацию о картинках по id
+	GetDataId(ctx context.Context, id int) ([]models.AllImages, error)
 }
 
 type service struct {
@@ -67,6 +71,15 @@ func (s *service) UploadPhoto(ctx context.Context, data []byte, metaInfo *models
 // Получаем информацию о картинках
 func (s *service) GetData(ctx context.Context) ([]models.AllImages, error) {
 	images, err := s.storage.GetData(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+// Получаем информацию о картинках по id
+func (s *service) GetDataId(ctx context.Context, id int) ([]models.AllImages, error) {
+	images, err := s.storage.GetDataId(ctx, id)
 	if err != nil {
 		return nil, err
 	}
