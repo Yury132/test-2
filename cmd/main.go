@@ -132,4 +132,5 @@ func main() {
 
 		defer wg.Done()
 	}()
+	wg.Wait()
 }

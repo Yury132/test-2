@@ -16,14 +16,14 @@ type ImageMeta struct {
 
 // Отображение информации о загруженных картинках и созданных миниатюрах
 type AllImages struct {
-	ID         uint   `json:"Id"`
-	Name       string `json:"Name"`
-	Type       string `json:"Type"`
-	Width      int    `json:"Width"`
-	Height     int    `json:"Height"`
-	NameMini   string `json:"Name Miniature"`
-	WidthMini  int    `json:"Width Miniature"`
-	HeightMini int    `json:"Height Miniature"`
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Width      int    `json:"width"`
+	Height     int    `json:"height"`
+	NameMini   string `json:"name_miniature"`
+	WidthMini  int    `json:"width_miniature"`
+	HeightMini int    `json:"height_miniature"`
 }
 
 func CollectImageMeta(data []byte, name string) (*ImageMeta, error) {
