@@ -17,18 +17,44 @@ import (
 	"github.com/Yury132/Golang-Task-2/internal/transport/http/handlers"
 	"github.com/Yury132/Golang-Task-2/internal/worker"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
+	"github.com/pressly/goose/v3"
+)
+
+const (
+	dialect        = "pgx"
+	commandUp      = "up"
+	commandDown    = "down"
+	migrationsPath = "./internal/migrations"
 )
 
 func main() {
+	// Конфигурации
 	cfg, err := config.Parse()
 	if err != nil {
 		panic(err)
 	}
 
+	// Логгер
 	logger := cfg.Logger()
 
+	// Миграции
+	db, err := goose.OpenDBWithDriver(dialect, cfg.GetDBConnString())
+	if err != nil {
+		logger.Fatal().Err(err).Msg("failed to open db by goose")
+	}
+
+	if err = goose.Run(commandUp, db, migrationsPath); err != nil {
+		logger.Fatal().Msgf("migrate %v: %v", commandUp, err)
+	}
+
+	if err = db.Close(); err != nil {
+		logger.Fatal().Err(err).Msg("failed to close db connection by goose")
+	}
+
+	// Настройка БД
 	poolCfg, err := cfg.PgPoolConfig()
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect to DB")

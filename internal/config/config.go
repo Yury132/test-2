@@ -69,11 +69,28 @@ func (cfg Config) Logger() (logger zerolog.Logger) {
 	return zerolog.New(out).Level(level).With().Caller().Timestamp().Logger()
 }
 
+// Получаем адрес в БД
+func (cfg Config) GetDBConnString() string {
+	return fmt.Sprintf(
+		"host=%s port=%d dbname=%s sslmode=disable user=%s password=%s",
+		cfg.DB.Address, cfg.DB.Port, cfg.DB.Name, cfg.DB.User, cfg.DB.Password,
+	)
+}
+
+// func (cfg Config) PgPoolConfig() (*pgxpool.Config, error) {
+// 	poolCfg, err := pgxpool.ParseConfig(fmt.Sprintf(
+// 		"host=%s port=%d dbname=%s sslmode=disable user=%s password=%s pool_max_conns=%d",
+// 		cfg.DB.Address, cfg.DB.Port, cfg.DB.Name, cfg.DB.User, cfg.DB.Password, cfg.DB.MaxConn,
+// 	))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return poolCfg, nil
+// }
+
 func (cfg Config) PgPoolConfig() (*pgxpool.Config, error) {
-	poolCfg, err := pgxpool.ParseConfig(fmt.Sprintf(
-		"host=%s port=%d dbname=%s sslmode=disable user=%s password=%s pool_max_conns=%d",
-		cfg.DB.Address, cfg.DB.Port, cfg.DB.Name, cfg.DB.User, cfg.DB.Password, cfg.DB.MaxConn,
-	))
+	poolCfg, err := pgxpool.ParseConfig(fmt.Sprintf("%s pool_max_conns=%d", cfg.GetDBConnString(), cfg.DB.MaxConn))
 	if err != nil {
 		return nil, err
 	}
