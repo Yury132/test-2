@@ -10,7 +10,9 @@ import (
 )
 
 type Storage interface {
+	// Загрузка данных в БД об изначальных изображениях
 	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	// Загрузка данных в БД о миниатюрах
 	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 	// Получаем информацию о картинках
 	GetData(ctx context.Context) ([]models.AllImages, error)
@@ -26,6 +28,7 @@ type storage struct {
 func (s *storage) SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error {
 	query := "INSERT INTO public.uploads_info (name, type, width, height) VALUES ($1, $2, $3, $4)"
 
+	// 10 секунд на выполнение операции с этим контекстом
 	ctxDb, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 

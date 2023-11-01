@@ -46,6 +46,7 @@ type Config struct {
 
 func Parse() (*Config, error) {
 	var cfg = new(Config)
+	// Устанавливаем значения переменных окружения
 	err := envconfig.Process("", cfg)
 
 	if err != nil {
@@ -55,6 +56,7 @@ func Parse() (*Config, error) {
 	return cfg, nil
 }
 
+// Логгер
 func (cfg Config) Logger() (logger zerolog.Logger) {
 	level := zerolog.InfoLevel
 	if newLevel, err := zerolog.ParseLevel(cfg.Service.LogLevel); err == nil {
@@ -89,6 +91,7 @@ func (cfg Config) GetDBConnString() string {
 // 	return poolCfg, nil
 // }
 
+// Конфигурация подключения к БД
 func (cfg Config) PgPoolConfig() (*pgxpool.Config, error) {
 	poolCfg, err := pgxpool.ParseConfig(fmt.Sprintf("%s pool_max_conns=%d", cfg.GetDBConnString(), cfg.DB.MaxConn))
 	if err != nil {
@@ -98,11 +101,14 @@ func (cfg Config) PgPoolConfig() (*pgxpool.Config, error) {
 	return poolCfg, nil
 }
 
+// Стрим для nats
 func (cfg Config) NewStream(ctx context.Context, js jetstream.JetStream) (jetstream.Stream, error) {
 	streamCfg := jetstream.StreamConfig{
-		Name:      "EVENTS",
+		Name: "EVENTS",
+		// Очередь
 		Retention: jetstream.WorkQueuePolicy,
-		Subjects:  []string{"media.>"},
+		// Топики
+		Subjects: []string{"media.>"},
 	}
 
 	stream, err := js.CreateStream(ctx, streamCfg)

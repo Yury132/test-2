@@ -13,6 +13,7 @@ import (
 )
 
 type Service interface {
+	// Загружаем изображение
 	UploadPhoto(ctx context.Context, data []byte, metaInfo *models.ImageMeta, thumbSize int) error
 	// Получаем информацию о картинках
 	GetData(ctx context.Context) ([]models.AllImages, error)
@@ -25,6 +26,7 @@ type Handler struct {
 	service Service
 }
 
+// Проверка работоспособности
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -40,10 +42,13 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+// Загружаем изображение
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
-	queryParams := r.URL.Query()
 
+	// Получаем параметр из запроса
+	queryParams := r.URL.Query()
 	scaleStr := queryParams.Get("size")
+	// Преобразуем из string в int
 	size, err := strconv.Atoi(scaleStr)
 	if err != nil {
 		h.log.Error().Err(err).Msg("invalid query param - size")
@@ -51,6 +56,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Получаем файл из запроса
 	file, handler, err := r.FormFile("file")
 	if err != nil {
 		h.log.Error().Err(err).Msg("failed to upload file")
@@ -63,6 +69,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	// Читаем файл
 	data, err := io.ReadAll(file)
 	if err != nil || data == nil {
 		h.log.Error().Err(err).Msg("failed to read the file")
@@ -70,6 +77,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Получаем данные о картинке
 	metaInfo, err := models.CollectImageMeta(data, handler.Filename)
 	if err != nil {
 		h.log.Error().Err(err).Msg("failed to collect meta info")
@@ -77,6 +85,7 @@ func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Загружаем картинку
 	if err = h.service.UploadPhoto(r.Context(), data, metaInfo, size); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

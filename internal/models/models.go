@@ -26,10 +26,11 @@ type AllImages struct {
 	HeightMini int    `json:"height_miniature"`
 }
 
+// Получаем данные о картинке
 func CollectImageMeta(data []byte, name string) (*ImageMeta, error) {
+	// Из байтов декодируем изображение
 	r := bytes.NewReader(data)
 	//r.Seek(0, 0)
-
 	imageData, imageType, err := image.Decode(r)
 	if err != nil {
 		return nil, err

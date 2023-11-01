@@ -9,6 +9,7 @@ import (
 )
 
 type ObjectStorage interface {
+	// Сохранение изображения в хранилище
 	Save(data []byte, name string) error
 }
 
@@ -16,6 +17,7 @@ type objectStorage struct {
 	log zerolog.Logger
 }
 
+// Сохранение изображения в хранилище
 func (o *objectStorage) Save(data []byte, name string) error {
 	path := fmt.Sprintf("uploads/%s", name)
 
@@ -29,7 +31,6 @@ func (o *objectStorage) Save(data []byte, name string) error {
 		}
 	}()
 
-	//_, err = io.Copy(f, *file)
 	_, err = f.Write(data)
 	if err != nil {
 		return errors.Wrap(err, "failed to write data to file")

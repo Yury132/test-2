@@ -22,11 +22,14 @@ type MediaService interface {
 }
 
 type Storage interface {
+	// Загрузка данных в БД об изначальных изображениях
 	SaveFileMeta(ctx context.Context, metaInfo *models.ImageMeta) error
+	// Загрузка данных в БД о миниатюрах
 	SaveFileMiniMeta(ctx context.Context, metaInfo *models.ImageMeta) error
 }
 
 type ObjectStorage interface {
+	// Сохранение изображения в хранилище
 	Save(data []byte, name string) error
 }
 
@@ -60,7 +63,8 @@ func (m *mediaService) GetTaskForProcessing() (*models.InfoForThumbnail, error) 
 }
 
 // Через resize
-// После создания миниатюры тут же сохраняем данные в БД
+// Создание миниатюры
+// Тут же сохраняем данные в БД
 func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 
 	// Открываем ранее сохраненную картинку
@@ -102,9 +106,10 @@ func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 		return err
 	}
 
-	// Сохраняем данные о миниатюре в БД
+	// Подготавливаем данные
 	dataMini := &models.ImageMeta{Name: fmt.Sprintf("%s.png", pName), Type: "png", Width: newImage.Bounds().Max.X, Height: newImage.Bounds().Max.Y}
 
+	// Сохраняем данные о миниатюре в БД
 	if err = m.storage.SaveFileMiniMeta(context.Background(), dataMini); err != nil {
 		m.log.Error().Err(err).Msg("failed to save data about mini to DB")
 		return err
@@ -113,7 +118,7 @@ func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 	return nil
 }
 
-// Через vips
+// То же самое, но только через Vips
 // func (m *mediaService) CreateThumbnail(info *models.InfoForThumbnail) error {
 // 	img, err := vips.NewImageFromFile(info.Path)
 

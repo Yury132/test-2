@@ -23,6 +23,7 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// Для гуся
 const (
 	dialect        = "pgx"
 	commandUp      = "up"
@@ -60,14 +61,17 @@ func main() {
 		logger.Fatal().Err(err).Msg("failed to connect to DB")
 	}
 
+	// Контекст
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Подключение к БД
 	conn, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect to db")
 	}
 
+	// Подключение к Nats
 	nc, err := nats.Connect(cfg.NATS.URL)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect to NATS")
@@ -78,6 +82,7 @@ func main() {
 		}
 	}()
 
+	// Создаем jetstream
 	js, err := jetstream.New(nc)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to create new jetstream")
@@ -89,11 +94,13 @@ func main() {
 		Subjects:  []string{"media.>"},
 	}
 
+	// Создаем поток
 	stream, err := js.CreateStream(ctx, streamCfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to create new stream")
 	}
 
+	// Создаем получателя
 	cons, err := stream.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
 		Name: "media_service",
 	})
@@ -101,20 +108,28 @@ func main() {
 		logger.Fatal().Err(err).Msg("failed to create new consumer")
 	}
 
+	// БД
 	strg := postgres.New(conn)
+	// Хранилище
 	objStorage := objectStorage.New(logger)
+	// Главный сервис (загрузка изображений, получения данных)
 	svc := service.New(logger, strg, objStorage, js)
+	// Сервис создания миниатюр
 	mediaSvc := mediaService.New(logger, strg, objStorage, cons)
+	// Хэндлеры
 	handler := handlers.New(logger, svc)
+	// Сервер
 	server := transport.New(":8080").WithHandler(handler)
-
+	// Воркеры
 	wp := worker.New(logger, mediaSvc, 5)
 	wp.Start()
 
-	// graceful shutdown
+	// Фиксируем нажатие Ctrl+C для остановки программы
 	shutdown := make(chan os.Signal, 1)
+	// Оповещаем канал
 	signal.Notify(shutdown, syscall.SIGINT)
 
+	// Запускаем сервер
 	go func() {
 		logger.Info().Msg("Server starting...")
 		if err = server.Run(); err != nil {
@@ -122,15 +137,19 @@ func main() {
 		}
 	}()
 
+	// Ждем нажатия Ctrl+C
 	<-shutdown
 
+	// Когда нажали Ctrl+C останавливаем всех воркеров
 	wg := new(sync.WaitGroup)
-
 	wg.Add(1)
+
 	go func() {
+		// Останавливаем всех воркеров
 		wp.Shutdown()
 
 		defer wg.Done()
 	}()
+	// Ждем пока остановятся все воркеры
 	wg.Wait()
 }
