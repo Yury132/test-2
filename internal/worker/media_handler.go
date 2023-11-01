@@ -9,8 +9,12 @@ import (
 	"github.com/Yury132/Golang-Task-2/internal/worker/pool"
 )
 
+// Эти функции будет вызывать воркер пул
+// Связь с "media_service"
 type MediaService interface {
+	// Создание миниатюры
 	CreateThumbnail(info *models.InfoForThumbnail) error
+	// Получаем сообщение из Nats
 	GetTaskForProcessing() (*models.InfoForThumbnail, error)
 }
 
@@ -20,14 +24,18 @@ type MediaHandler struct {
 	pool         *pool.Pool
 }
 
+// Запуск
 func (mh *MediaHandler) Start() {
+	// Передаем функцию, которую будет выполнять воркер пул
 	mh.pool.RunBackground(mh.createThumbnail)
 }
 
+// Остановка
 func (mh *MediaHandler) Shutdown() {
 	mh.pool.Stop()
 }
 
+// Функция, которую будет выполнять воркер пул
 func (mh *MediaHandler) createThumbnail() {
 	info, err := mh.mediaService.GetTaskForProcessing()
 	if err != nil {

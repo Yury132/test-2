@@ -120,7 +120,7 @@ func main() {
 	handler := handlers.New(logger, svc)
 	// Сервер
 	server := transport.New(":8080").WithHandler(handler)
-	// Воркеры
+	// Управляем воркер пулом
 	wp := worker.New(logger, mediaSvc, 5)
 	wp.Start()
 

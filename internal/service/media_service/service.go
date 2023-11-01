@@ -17,7 +17,9 @@ import (
 )
 
 type MediaService interface {
+	// Создание миниатюры
 	CreateThumbnail(info *models.InfoForThumbnail) error
+	// Получаем сообщение из Nats
 	GetTaskForProcessing() (*models.InfoForThumbnail, error)
 }
 
@@ -40,20 +42,25 @@ type mediaService struct {
 	jsConsumer    jetstream.Consumer
 }
 
+// Получаем сообщение из Nats
 func (m *mediaService) GetTaskForProcessing() (*models.InfoForThumbnail, error) {
+	// Получаем сообщение из Nats
 	msg, err := m.jsConsumer.Next()
 	if err != nil {
 		return nil, err
 	}
 
+	// Подтверждение сообщения
 	if err = msg.Ack(); err != nil {
 		return nil, err
 	}
 
+	// Получаем данные из сообщения
 	if msg.Data() == nil {
 		return nil, nil
 	}
 
+	// Декодируем
 	var info = new(models.InfoForThumbnail)
 	if err = json.Unmarshal(msg.Data(), info); err != nil {
 		return nil, err
