@@ -45,6 +45,7 @@ type mediaService struct {
 // Получаем сообщение из Nats
 func (m *mediaService) GetTaskForProcessing() (*models.InfoForThumbnail, error) {
 	// Получаем сообщение из Nats
+	// Next - блокируется пока нет входящих сообщений или не прошло время таймаута
 	msg, err := m.jsConsumer.Next()
 	if err != nil {
 		return nil, err
