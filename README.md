@@ -73,6 +73,9 @@ http://localhost:8080/uploads?size=100
 ```
 http://localhost:8080/get-data
 ```
+
+![alt text](https://github.com/Yury132/test-2/blob/main/forREADME/3.PNG?raw=true)
+
 где:
 
 <b>id</b> - Уникальный идентификатор загруженного изображения
@@ -97,6 +100,6 @@ http://localhost:8080/get-data
 ```
 http://localhost:8080/uploads/id
 ```
-где "id" - положителое целое число
+где "id" - положительное целое число
 
 - Загруженные изображения и миниатюры будут сохраняться в папке "uploads"
